@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 
 // Load environment variables
 dotenv.config();
@@ -93,6 +93,29 @@ async function run() {
       res.send(result);
     });
 
+    // order update with otp
+    app.patch("/order-update/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+      console.log(updatedData);
+
+      try {
+        const result = await orderCollection.updateOne(
+          { _id: new ObjectId(id) }, // Find by ID
+          { $set: updatedData } // Set the updated data fields
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ message: "Order not found" });
+        }
+
+        res.send({ message: "Order updated successfully", result });
+      } catch (error) {
+        console.error("Error updating order:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
+
     // Get All Orders Route
     app.get("/orders", async (req, res) => {
       try {
@@ -121,6 +144,35 @@ async function run() {
       }
 
       res.send(orders);
+    });
+
+    // Delete Order by ID Route
+    app.delete("/orders/:id", async (req, res) => {
+      const { id } = req.params; // Get order ID from URL parameters
+
+      try {
+        const result = await orderCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).send({ message: "Order not found" });
+        }
+
+        res.send({ message: "Order deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting order:", error);
+        res.status(500).send({ message: "Error deleting order", error });
+      }
+    });
+
+    // Delete Multiple Orders by IDs Route
+    app.delete("/deleteOrder/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
     });
 
     console.log("Connected to MongoDB!");
