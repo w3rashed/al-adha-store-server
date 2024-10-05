@@ -26,7 +26,8 @@ app.use(
 app.use(express.json()); // Parse JSON requests
 
 // MongoDB connection setup
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.xXyw5xX0FNw6PRgj}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -55,7 +56,7 @@ const verifyToken = (req, res, next) => {
 // Start MongoDB connection and API endpoints
 async function run() {
   try {
-    await client.connect(); // Connect to MongoDB
+    
     console.log("Connected to MongoDB!");
 
     const userCollection = client.db("al-ada-store").collection("users");
