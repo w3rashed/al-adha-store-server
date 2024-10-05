@@ -56,7 +56,7 @@ const verifyToken = (req, res, next) => {
 // Start MongoDB connection and API endpoints
 async function run() {
   try {
-    await client.connect();
+    
 
     const userCollection = client.db("al-ada-store").collection("users");
     const orderCollection = client.db("al-ada-store").collection("orders");
