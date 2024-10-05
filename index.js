@@ -13,7 +13,12 @@ const port = process.env.PORT || 5000;
 // CORS Configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://al-adha-server.up.railway.app"], // Frontend origin
+    origin: [
+      "http://localhost:5173",
+      "https://al-adha-server.up.railway.app",
+      "https://al-ada-hstore-49okw9o2c-rasheds-projects-cb9f1b79.vercel.app",
+      "https://al-ada-hstore.vercel.app"
+    ], // Frontend origin
     credentials: true,
   })
 );
