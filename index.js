@@ -13,14 +13,16 @@ const port = process.env.PORT || 5000;
 // CORS Configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // Frontend origin
+    origin: ["http://localhost:5173","https://al-adha-server.up.railway.app"], // Frontend origin
     credentials: true,
   })
 );
 app.use(express.json());
 
 // MongoDB connection setup
-const uri = "mongodb://localhost:27017";
+// const uri = "mongodb://localhost:27017";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nrpddgz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -48,6 +50,8 @@ const verifyToken = (req, res, next) => {
 // Start MongoDB connection and API endpoints
 async function run() {
   try {
+    await client.connect();
+
     const userCollection = client.db("al-ada-store").collection("users");
     const orderCollection = client.db("al-ada-store").collection("orders");
 
@@ -97,7 +101,7 @@ async function run() {
     app.patch("/order-update/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
-      console.log(updatedData);
+      // console.log(updatedData);
 
       try {
         const result = await orderCollection.updateOne(
@@ -146,6 +150,32 @@ async function run() {
       res.send(orders);
     });
 
+    // Order data get by mobile number
+    app.get("/orderdPhone/:mobileNumber", async (req, res) => {
+      const { mobileNumber } = req.params; // Extract mobileNumber from the request parameters
+
+      try {
+        // Query the database to find a single order by mobile number
+        const result = await orderCollection.findOne({ mobile: mobileNumber });
+
+        if (!result) {
+          // If no order is found, respond with a 404 status and a message
+          return res
+            .status(404)
+            .json({ message: "No order found for this mobile number." });
+        }
+
+        // If order is found, log it and send it back to the client
+        // console.log("Order Found:", result);
+        res.status(200).json(result); // Send the found order back to the client
+      } catch (error) {
+        console.error("Error fetching order:", error);
+        res
+          .status(500)
+          .json({ message: "Server error while fetching the order." });
+      }
+    });
+
     // Delete Order by ID Route
     app.delete("/orders/:id", async (req, res) => {
       const { id } = req.params; // Get order ID from URL parameters
@@ -181,7 +211,9 @@ async function run() {
   }
 }
 
-run().catch(console.dir);
+run().catch((error) => {
+  console.error("Error connecting to MongoDB:", error);
+});
 
 app.get("/", (req, res) => {
   res.send("API is running");
