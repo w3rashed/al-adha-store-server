@@ -18,16 +18,17 @@ app.use(
       "https://al-adha-server.up.railway.app",
       "https://al-ada-hstore-49okw9o2c-rasheds-projects-cb9f1b79.vercel.app",
       "https://al-ada-hstore.vercel.app",
-    ], // Frontend origins
-    credentials: true, // Allow credentials (cookies, authorization headers)
+    ], // Frontend origin
+    credentials: true,
   })
 );
-
-app.use(express.json()); // Parse JSON requests
+app.use(express.json());
 
 // MongoDB connection setup
+// const uri = "mongodb://localhost:27017";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nrpddgz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.xXyw5xX0FNw6PRgj}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -44,7 +45,7 @@ const verifyToken = (req, res, next) => {
     return res.status(403).send({ message: "No token provided" });
   }
 
-  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).send({ message: "Invalid token" });
     }
@@ -56,17 +57,9 @@ const verifyToken = (req, res, next) => {
 // Start MongoDB connection and API endpoints
 async function run() {
   try {
-    
-    console.log("Connected to MongoDB!");
 
     const userCollection = client.db("al-ada-store").collection("users");
     const orderCollection = client.db("al-ada-store").collection("orders");
-
-    // Logging request origin for CORS debugging
-    app.use((req, res, next) => {
-      console.log("Request Origin:", req.headers.origin);
-      next();
-    });
 
     // User Registration Route
     app.post("/register", async (req, res) => {
@@ -110,10 +103,11 @@ async function run() {
       res.send(result);
     });
 
-    // Update order with OTP Route
+    // order update with otp
     app.patch("/order-update/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
+      // console.log(updatedData);
 
       try {
         const result = await orderCollection.updateOne(
@@ -162,20 +156,24 @@ async function run() {
       res.send(orders);
     });
 
-    // Get order by mobile number
+    // Order data get by mobile number
     app.get("/orderdPhone/:mobileNumber", async (req, res) => {
       const { mobileNumber } = req.params; // Extract mobileNumber from the request parameters
 
       try {
+        // Query the database to find a single order by mobile number
         const result = await orderCollection.findOne({ mobile: mobileNumber });
 
         if (!result) {
+          // If no order is found, respond with a 404 status and a message
           return res
             .status(404)
             .json({ message: "No order found for this mobile number." });
         }
 
-        res.status(200).json(result);
+        // If order is found, log it and send it back to the client
+        // console.log("Order Found:", result);
+        res.status(200).json(result); // Send the found order back to the client
       } catch (error) {
         console.error("Error fetching order:", error);
         res
@@ -207,13 +205,15 @@ async function run() {
     // Delete Multiple Orders by IDs Route
     app.delete("/deleteOrder/:id", async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
 
+    console.log("Connected to MongoDB!");
   } finally {
-    // Keep connection open or handle cleanup if necessary
+    // Handle cleanup or keep connection alive
   }
 }
 
