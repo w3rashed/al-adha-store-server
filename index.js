@@ -17,7 +17,7 @@ app.use(
       "http://localhost:5173",
       "https://al-adha-server.up.railway.app",
       "https://al-ada-hstore-49okw9o2c-rasheds-projects-cb9f1b79.vercel.app",
-      "https://al-ada-hstore.vercel.app"
+      "https://al-ada-hstore.vercel.app",
     ], // Frontend origin
     credentials: true,
   })
@@ -26,8 +26,9 @@ app.use(express.json());
 
 // MongoDB connection setup
 // const uri = "mongodb://localhost:27017";
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nrpddgz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nrpddgz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -56,8 +57,6 @@ const verifyToken = (req, res, next) => {
 // Start MongoDB connection and API endpoints
 async function run() {
   try {
-    
-
     const userCollection = client.db("al-ada-store").collection("users");
     const orderCollection = client.db("al-ada-store").collection("orders");
 
