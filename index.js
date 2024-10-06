@@ -161,7 +161,9 @@ async function run() {
 
       try {
         // Query the database to find a single order by mobile number
-        const result = await orderCollection.findOne({ mobile: mobileNumber });
+        const result = await orderCollection
+          .find({ mobile: mobileNumber })
+          .toArray();
 
         if (!result) {
           // If no order is found, respond with a 404 status and a message
