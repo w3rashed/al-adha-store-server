@@ -26,9 +26,9 @@ app.use(
 app.use(express.json());
 
 // MongoDB connection setup
-// const uri = "mongodb://localhost:27017";
+const uri = "mongodb://localhost:27017";
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -98,8 +98,23 @@ async function run() {
     // Create an Order Route
     app.post("/orders", async (req, res) => {
       const data = req.body;
-      const result = await orderCollection.insertOne(data);
-      res.send(result);
+      const { iqama } = data; 
+      try {
+        const existingOrder = await orderCollection.findOne({ iqama });
+        if (existingOrder) {
+          const result = await orderCollection.updateOne(
+            { _id: existingOrder._id },
+            { $set: data } 
+          );
+          res.send({ message: "Order updated successfully", result });
+        } else {
+          const result = await orderCollection.insertOne(data);
+          res.send({ message: "Order created successfully", result });
+        }
+      } catch (error) {
+        console.error("Error processing order:", error);
+        res.status(500).send({ message: "Failed to process order", error: error.message });
+      }
     });
 
     // order update with otp
