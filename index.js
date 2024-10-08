@@ -26,10 +26,9 @@ app.use(
 app.use(express.json());
 
 // MongoDB connection setup
-// const uri = "mongodb://localhost:27017";
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nrpddgz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = "mongodb://localhost:27017";
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h1umx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -146,8 +145,8 @@ async function run() {
       try {
         const latestOrder = await orderCollection
           .find({ iqamaNumber: iqama })
-          .sort({ orderDate: -1 }) // Sort by orderDate in descending order
-          .limit(1) // Limit the result to the most recent order
+          .sort({ orderDate: -1 })
+          .limit(1)
           .toArray();
 
         if (latestOrder.length === 0) {
@@ -212,15 +211,35 @@ async function run() {
     });
 
     // Delete Multiple Orders by IDs Route
-    app.delete("/deleteOrder/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log(id);
-      const query = { _id: new ObjectId(id) };
-      const result = await orderCollection.deleteOne(query);
-      res.send(result);
-    });
+  
 
-    console.log("Connected to MongoDB!");
+    app.delete("/deleteOrder", async (req, res) => {
+      const { ids } = req.body; // Destructure 'ids' from the request body
+      console.log(ids);
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).send({ message: "Invalid or empty IDs array" });
+      }
+      try {
+        const objectIds = ids.map(id => {
+          if (!ObjectId.isValid(id)) {
+            throw new Error(`Invalid ObjectId: ${id}`);
+          }
+          return new ObjectId(id);
+        });
+        const query = { _id: { $in: objectIds } };
+        const result = await orderCollection.deleteMany(query);
+        res.send(result);
+      } catch (error) {
+        console.error("Error deleting orders:", error);
+        res.status(500).send({ message: "Failed to delete orders", error: error.message });
+      }
+    });
+    
+
+
+
+
+    
   } finally {
     // Handle cleanup or keep connection alive
   }
