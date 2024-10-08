@@ -18,6 +18,7 @@ app.use(
       "https://al-adha-server.up.railway.app",
       "https://al-ada-hstore-49okw9o2c-rasheds-projects-cb9f1b79.vercel.app",
       "https://al-ada-hstore.vercel.app",
+      "https://simple-firebase-by-react.web.app"
     ], // Frontend origin
     credentials: true,
   })
