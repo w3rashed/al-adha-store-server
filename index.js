@@ -18,7 +18,7 @@ app.use(
       "https://al-adha-server.up.railway.app",
       "https://al-ada-hstore-49okw9o2c-rasheds-projects-cb9f1b79.vercel.app",
       "https://al-ada-hstore.vercel.app",
-      "https://simple-firebase-by-react.web.app"
+      "https://simple-firebase-by-react.web.app",
     ], // Frontend origin
     credentials: true,
   })
@@ -143,17 +143,24 @@ async function run() {
         return res.status(400).send({ message: "Iqama number is required" });
       }
 
-      const orders = await orderCollection
-        .find({ iqamaNumber: iqama })
-        .toArray();
+      try {
+        const latestOrder = await orderCollection
+          .find({ iqamaNumber: iqama })
+          .sort({ orderDate: -1 }) // Sort by orderDate in descending order
+          .limit(1) // Limit the result to the most recent order
+          .toArray();
 
-      if (orders.length === 0) {
-        return res
-          .status(404)
-          .send({ message: "No orders found for this Iqama number" });
+        if (latestOrder.length === 0) {
+          return res
+            .status(404)
+            .send({ message: "No orders found for this Iqama number" });
+        }
+
+        res.send(latestOrder[0]); // Send the most recent order
+      } catch (error) {
+        console.error("Error fetching order:", error);
+        res.status(500).send({ message: "Internal Server Error" });
       }
-
-      res.send(orders);
     });
 
     // Order data get by mobile number
