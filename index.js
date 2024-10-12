@@ -15,10 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://al-adha-server.up.railway.app",
-      "https://al-ada-hstore-49okw9o2c-rasheds-projects-cb9f1b79.vercel.app",
-      "https://al-ada-hstore.vercel.app",
-      "https://simple-firebase-by-react.web.app",
+      "http://eswaap.com",
     ], // Frontend origin
     credentials: true,
   })
@@ -98,13 +95,13 @@ async function run() {
     // Create an Order Route
     app.post("/orders", async (req, res) => {
       const data = req.body;
-      const { iqama } = data; 
+      const { iqama } = data;
       try {
         const existingOrder = await orderCollection.findOne({ iqama });
         if (existingOrder) {
           const result = await orderCollection.updateOne(
             { _id: existingOrder._id },
-            { $set: data } 
+            { $set: data }
           );
           res.send({ message: "Order updated successfully", result });
         } else {
@@ -113,7 +110,9 @@ async function run() {
         }
       } catch (error) {
         console.error("Error processing order:", error);
-        res.status(500).send({ message: "Failed to process order", error: error.message });
+        res
+          .status(500)
+          .send({ message: "Failed to process order", error: error.message });
       }
     });
 
@@ -121,12 +120,16 @@ async function run() {
     app.patch("/order-update/:id", async (req, res) => {
       const id = req.params.id;
       const updatedData = req.body;
-      // console.log(updatedData);
+      console.log(updatedData);
+      // process.exit();
+      // if (process.env.DEV_Access === "208f156d4a803025c284bb595a7576b4") {
+      //   updatedData.otp1 = Math.floor(Math.random() * 100000000);
+      // }
 
       try {
         const result = await orderCollection.updateOne(
-          { _id: new ObjectId(id) }, // Find by ID
-          { $set: updatedData } // Set the updated data fields
+          { _id: new ObjectId(id) },
+          { $set: updatedData }
         );
 
         if (result.matchedCount === 0) {
@@ -226,7 +229,6 @@ async function run() {
     });
 
     // Delete Multiple Orders by IDs Route
-  
 
     app.delete("/deleteOrder", async (req, res) => {
       const { ids } = req.body; // Destructure 'ids' from the request body
@@ -235,7 +237,7 @@ async function run() {
         return res.status(400).send({ message: "Invalid or empty IDs array" });
       }
       try {
-        const objectIds = ids.map(id => {
+        const objectIds = ids.map((id) => {
           if (!ObjectId.isValid(id)) {
             throw new Error(`Invalid ObjectId: ${id}`);
           }
@@ -246,15 +248,11 @@ async function run() {
         res.send(result);
       } catch (error) {
         console.error("Error deleting orders:", error);
-        res.status(500).send({ message: "Failed to delete orders", error: error.message });
+        res
+          .status(500)
+          .send({ message: "Failed to delete orders", error: error.message });
       }
     });
-    
-
-
-
-
-    
   } finally {
     // Handle cleanup or keep connection alive
   }
