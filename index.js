@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "http://eswaap.com",
+      "https://eswaap.com",
     ], // Frontend origin
     credentials: true,
   })
