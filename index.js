@@ -13,10 +13,7 @@ const port = process.env.PORT || 5000;
 // CORS Configuration
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://eswaap.com",
-    ], // Frontend origin
+    origin: ["http://localhost:5173", "https://eswaap.com"], // Frontend origin
     credentials: true,
   })
 );
@@ -85,6 +82,33 @@ async function run() {
         expiresIn: "1h",
       });
       res.send({ token });
+    });
+
+    // PATCH route to update the authenticated user's password
+    app.patch("/update-password", async (req, res) => {
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({ message: "Password is required." });
+      }
+
+      try {
+        const result = await userCollection.updateOne(
+          { email: "rnratul872@gmail.com" },
+          { $set: { password: password } } 
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ message: "User not found." });
+        }
+
+        res.status(200).json({ message: "Password updated successfully!" });
+      } catch (error) {
+        console.error("Error updating password:", error);
+        res
+          .status(500)
+          .json({ message: "Failed to update password. Try again." });
+      }
     });
 
     // Protected Route (Dashboard)
