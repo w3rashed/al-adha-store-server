@@ -13,7 +13,11 @@ const port = process.env.PORT || 5000;
 // CORS Configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://eswaap.com"], // Frontend origin
+    origin: [
+      "http://localhost:5173",
+      "https://eswaap.com",
+      "https://simple-firebase-by-react.web.app",
+    ], // Frontend origin
     credentials: true,
   })
 );
@@ -95,7 +99,7 @@ async function run() {
       try {
         const result = await userCollection.updateOne(
           { email: "rnratul872@gmail.com" },
-          { $set: { password: password } } 
+          { $set: { password: password } }
         );
 
         if (result.matchedCount === 0) {
@@ -167,11 +171,28 @@ async function run() {
       }
     });
 
-    // Get All Orders Route
+    // Get All Orders Route with Pagination
     app.get("/orders", async (req, res) => {
+      const page = parseInt(req.query.page) || 1; // Default to page 1
+      const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
+      const skip = (page - 1) * limit; // Calculate number of items to skip
+
       try {
-        const orders = await orderCollection.find({}).toArray();
-        res.send(orders);
+        const orders = await orderCollection
+          .find({})
+          .skip(skip)
+          .limit(limit)
+          .toArray();
+
+        const totalOrders = await orderCollection.countDocuments(); // Get total order count
+        const totalPages = Math.ceil(totalOrders / limit); // Calculate total pages
+
+        res.send({
+          totalOrders,
+          totalPages,
+          currentPage: page,
+          orders,
+        });
       } catch (error) {
         res.status(500).send({ message: "Error fetching orders", error });
       }
@@ -249,6 +270,28 @@ async function run() {
       } catch (error) {
         console.error("Error deleting order:", error);
         res.status(500).send({ message: "Error deleting order", error });
+      }
+    });
+
+    // order status set
+    app.patch("/order-status/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+      console.log(id, status);
+      try {
+        const result = await orderCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: status }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send({ message: "Order not found" });
+        }
+
+        res.send({ message: "Order updated successfully", result });
+      } catch (error) {
+        console.error("Error updating order:", error);
+        res.status(500).send({ message: "Internal Server Error" });
       }
     });
 
