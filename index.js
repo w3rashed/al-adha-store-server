@@ -171,21 +171,21 @@ async function run() {
       }
     });
 
-    // Get All Orders Route with Pagination
     app.get("/orders", async (req, res) => {
-      const page = parseInt(req.query.page) || 1; // Default to page 1
-      const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
-      const skip = (page - 1) * limit; // Calculate number of items to skip
+      const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = (page - 1) * limit;
 
       try {
         const orders = await orderCollection
           .find({})
+          .sort({ orderDate: -1 }) 
           .skip(skip)
           .limit(limit)
           .toArray();
 
-        const totalOrders = await orderCollection.countDocuments(); // Get total order count
-        const totalPages = Math.ceil(totalOrders / limit); // Calculate total pages
+        const totalOrders = await orderCollection.countDocuments();
+        const totalPages = Math.ceil(totalOrders / limit);
 
         res.send({
           totalOrders,
